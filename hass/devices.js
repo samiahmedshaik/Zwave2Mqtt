@@ -182,6 +182,131 @@ module.exports = {
       }
     }
   ],
+  '798-1-5': [
+    // Inovelli LZW42 Multi-Color Bulb
+    {
+      type: 'light',
+      object_id: 'rgbw_bulb',
+      values: ['38-1-0', '51-1-0'],
+      discovery_payload: {
+        state_topic: '38-1-0',
+        command_topic: '38-1-0',
+        on_command_type: 'brightness',
+        brightness_state_topic: '38-1-0',
+        brightness_command_topic: '38-1-0',
+        state_value_template: '{{ "OFF" if value_json.value == 0 else "ON" }}',
+        brightness_value_template: '{{ (value_json.value) | round(0) }}',
+        brightness_scale: '99',
+        color_temp_state_topic: '51-1-0',
+        color_temp_command_template:
+          "{{ '#%02x%02x%02x%02x%02x' | format(0, 0, 0, (0.7349 * (value - 153)) | round(0), 255 - (0.7349 * (value - 153)) | round(0))}}",
+        color_temp_command_topic: '51-1-0',
+        color_temp_value_template:
+          '{{ (((value_json.value[7:9] | int(0, 16)) / 0.7349 ) | round(0)) + 153 }}',
+        rgb_command_template:
+          "{{'#%02x%02x%02x%02x%02x' | format(red, green, blue,0,0)}}",
+        rgb_command_topic: '51-1-0',
+        rgb_state_topic: '51-1-0',
+        rgb_value_template:
+          '{{ value_json.value[1:3] | int(0, 16) }},{{ value_json.value[3:5] | int(0, 16) }},{{ value_json.value[5:7] | int(0, 16) }}'
+      }
+    }
+  ],
+  '5-1619-20549': [
+    // Intermatic PE653 MultiWave Receiver
+    {
+      type: 'climate',
+      object_id: 'pool_thermostat',
+      values: ['49-1-1', '67-1-1'],
+      default_setpoint: '67-1-1',
+      discovery_payload: {
+        min_temp: 40,
+        max_temp: 104,
+        modes: ['heat'],
+        temperature_unit: 'F',
+        current_temperature_topic: '49-1-1',
+        current_temperature_template: '{{ value_json.value }}',
+        temperature_command_topic: true,
+        temperature_state_template: '{{ value_json.value }}'
+      }
+    },
+    {
+      type: 'climate',
+      object_id: 'spa_thermostat',
+      values: ['49-1-1', '67-1-7'],
+      default_setpoint: '67-1-7',
+      discovery_payload: {
+        min_temp: 40,
+        max_temp: 104,
+        modes: ['heat'],
+        temperature_unit: 'F',
+        current_temperature_topic: '49-1-1',
+        current_temperature_template: '{{ value_json.value }}',
+        temperature_command_topic: true,
+        temperature_state_template: '{{ value_json.value }}'
+      }
+    },
+    {
+      type: 'switch',
+      object_id: 'circuit_1',
+      values: ['37-1-0'],
+      discovery_payload: {
+        payload_off: false,
+        payload_on: true,
+        state_topic: '37-1-0',
+        command_topic: '37-1-0',
+        value_template: '{{ value_json.value }}'
+      }
+    },
+    {
+      type: 'switch',
+      object_id: 'circuit_2',
+      values: ['37-2-0'],
+      discovery_payload: {
+        payload_off: false,
+        payload_on: true,
+        state_topic: '37-2-0',
+        command_topic: '37-2-0',
+        value_template: '{{ value_json.value }}'
+      }
+    },
+    {
+      type: 'switch',
+      object_id: 'circuit_3',
+      values: ['37-3-0'],
+      discovery_payload: {
+        payload_off: false,
+        payload_on: true,
+        state_topic: '37-3-0',
+        command_topic: '37-3-0',
+        value_template: '{{ value_json.value }}'
+      }
+    },
+    {
+      type: 'switch',
+      object_id: 'circuit_4',
+      values: ['37-4-0'],
+      discovery_payload: {
+        payload_off: false,
+        payload_on: true,
+        state_topic: '37-4-0',
+        command_topic: '37-4-0',
+        value_template: '{{ value_json.value }}'
+      }
+    },
+    {
+      type: 'switch',
+      object_id: 'circuit_5',
+      values: ['37-5-0'],
+      discovery_payload: {
+        payload_off: false,
+        payload_on: true,
+        state_topic: '37-5-0',
+        command_topic: '37-5-0',
+        value_template: '{{ value_json.value }}'
+      }
+    }
+  ],
   '2-4-5': [DANFOSS_TRV_ZWAVE], // DanfossZ
   '2-373-5': [DANFOSS_TRV_ZWAVE], // Danfoss LC-13
   '2-40976-266': [DANFOSS_TRV_ZWAVE], // Popp Radiator Thermostat

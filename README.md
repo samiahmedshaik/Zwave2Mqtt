@@ -36,27 +36,28 @@ After a [discussion](https://github.com/OpenZWave/Zwave2Mqtt/issues/201) with Op
 ## 📖 Table of contents
 
 - [Zwave To MQTT](#zwave-to-mqtt)
-  - [!! ATTENTION !!](#-attention)
-  - [📖 Table of contents](#%f0%9f%93%96-table-of-contents)
-  - [:electric_plug: Installation](#electricplug-installation)
-    - [DOCKER :tada: way](#docker-tada-way)
+  - [!! ATTENTION](#-attention)
+  - [📖 Table of contents](#-table-of-contents)
+  - [:electric_plug: Installation](#-installation)
+    - [DOCKER :tada: way](#docker--way)
     - [Kubernetes way](#kubernetes-way)
     - [NodeJS or PKG version](#nodejs-or-pkg-version)
     - [Reverse Proxy Setup](#reverse-proxy-setup)
-  - [:nerd_face: Development](#nerdface-development)
-  - [:wrench: Usage](#wrench-usage)
+  - [:nerd_face: Development](#-development)
+    - [Developing against a different backend](#developing-against-a-different-backend)
+  - [:wrench: Usage](#-usage)
     - [Zwave](#zwave)
     - [MQTT](#mqtt)
     - [Gateway](#gateway)
       - [Special topics](#special-topics)
       - [Gateway values table](#gateway-values-table)
-  - [:file_folder: Nodes Management](#filefolder-nodes-management)
+  - [:file_folder: Nodes Management](#-nodes-management)
     - [Add a node](#add-a-node)
     - [Remove a node](#remove-a-node)
     - [Replace failed node](#replace-failed-node)
     - [Remove a failed node](#remove-a-failed-node)
-  - [:star: Features](#star-features)
-  - [:robot: Home Assistant integration (BETA)](#robot-home-assistant-integration-beta)
+  - [:star: Features](#️-features)
+  - [:robot: Home Assistant integration (BETA)](#-home-assistant-integration-beta)
     - [Components management](#components-management)
       - [Rediscover Node](#rediscover-node)
       - [Edit existing component](#edit-existing-component)
@@ -66,14 +67,14 @@ After a [discussion](https://github.com/OpenZWave/Zwave2Mqtt/issues/201) with Op
       - [Thermostats](#thermostats)
       - [Fans](#fans)
       - [Thermostats with Fans](#thermostats-with-fans)
-  - [:gift: MQTT APIs](#gift-mqtt-apis)
+  - [:gift: MQTT APIs](#-mqtt-apis)
     - [Zwave Events](#zwave-events)
       - [Example](#example)
     - [Zwave APIs](#zwave-apis)
       - [Custom APIs](#custom-apis)
     - [Set values](#set-values)
     - [Broadcast](#broadcast)
-  - [:camera: Screenshots](#camera-screenshots)
+  - [:camera: Screenshots](#-screenshots)
     - [Settings](#settings)
     - [Control Panel](#control-panel)
     - [Groups associations](#groups-associations)
@@ -81,9 +82,9 @@ After a [discussion](https://github.com/OpenZWave/Zwave2Mqtt/issues/201) with Op
     - [Mesh](#mesh)
     - [Debug](#debug)
   - [Health check endpoints](#health-check-endpoints)
-  - [:question: FAQ](#question-faq)
-  - [:pray: Thanks](#pray-thanks)
-  - [:pencil: TODOs](#pencil-todos)
+  - [:question: FAQ](#-faq)
+  - [:pray: Thanks](#-thanks)
+  - [:pencil: TODOs](#-todos)
   - [:bowtie: Author](#bowtie-author)
 
 ## :electric_plug: Installation
@@ -122,10 +123,10 @@ kubectl apply -k https://raw.githubusercontent.com/openzwave/zwave2mqtt/master/k
    If you are using Ubuntu:
 
    ```sh
-   sudo apt-get install libudev-dev
+   sudo apt-get install libudev-dev git
    cd ~
    git clone https://github.com/OpenZWave/open-zwave.git
-   cd openzwave && make && sudo make install
+   cd open-zwave && make && sudo make install
    sudo ldconfig
    export LD_LIBRARY_PATH=/usr/local/lib64
    sudo sed -i '$a LD_LIBRARY_PATH=/usr/local/lib64' /etc/environment
@@ -210,9 +211,6 @@ Zwave settings:
 - **Network key** (Optional): Zwave network key if security is enabled. The correct format is `"0xCA,0xFE,0xBA,0xBE,.... "` (16 bytes total)
 - **Logging**: Enable/Disable Openzwave Library logging
 - **Save configuration**: Store zwave configuration in `zwcfg_<homeHex>.xml` and `zwscene.xml` files this is needed for persistent node information like node name and location
-- **Refresh Node Info**: Enable this to automatically call `refreshNodeInfo` api against all nodes to force all nodes refreshing their configuration
-- **Auto Heal Network**: Enable this to schedule automatic network heals to a specfic time
-- **Heal hours**: When auto heal is enabled, specified the hours at which `healNetwork` will be daily triggered (0-23)
 - **Poll interval**: Interval in milliseconds between polls (should not be less than 1s per device)
 - **Commands timeout**: Seconds to wait before automatically stop inclusion/exclusion
 - **Configuration Path**: The path to Openzwave devices config db
@@ -410,6 +408,9 @@ To enable this feature remember to set the flag **Hass Discovery** in Gateway se
 To achieve the best possible integration (including MQTT discovery):
 
 - In your **Zwave2Mqtt** gateway settings enable `Homeassistant discovery` flag and enable the MQTT **retain** too. The retain flag for MQTT is suggested to be sure that, once discovered, each device get the last value published (otherwise you have to wait for a value change)
+
+**NB:** Starting from version `4.0.0` the default Birth/Will topic is `homeassistant/status` in order to reflect defaults birth/will of Hass `0.113` th
+
 - In your **Home Assistant** `configuration.yaml`:
 
 ```yaml
@@ -418,10 +419,10 @@ mqtt:
   discovery_prefix: <your_discovery_prefix>
   broker: [YOUR MQTT BROKER] # Remove if you want to use builtin-in MQTT broker
   birth_message:
-    topic: 'hass/status'
+    topic: 'hass/status' # or homeassistant/status if z2m version >= 4.0.0
     payload: 'online'
   will_message:
-    topic: 'hass/status'
+    topic: 'hass/status' # or homeassistant/status if z2m version >= 4.0.0
     payload: 'offline'
 ```
 
@@ -429,7 +430,7 @@ Mind you that if you want to use the embedded broker of Home Assistant you
 have to [follow this guide](https://www.home-assistant.io/docs/mqtt/broker#embedded-broker).
 
 Zwave2Mqtt is expecting Home Assistant to send it's birth/will
-messages to `hass/status`. Be sure to add this to your `configuration.yaml` if you want
+messages to `hass/status` (or `homeassistant/status` if z2m version >= 4.0.0). Be sure to add this to your `configuration.yaml` if you want
 Zwave2Mqtt to resend the cached values when Home Assistant restarts.
 
 Zwave2Mqtt try to do its best to guess how to map devices from Zwave to HASS. At the moment it try to guess the device to generate based on zwave values command classes, index and units of the value. When the discovered device doesn't fit your needs you can you can set custom a `device_class` to values using Gateway value table.

@@ -28,7 +28,7 @@
           </v-layout>
 
           <v-layout>
-            <v-flex xs12 sm3 md2 mr-2>
+            <v-flex xs12 sm6 md3 mr-2>
               <v-text-field
                 label="Controller status"
                 readonly
@@ -36,7 +36,7 @@
               ></v-text-field>
             </v-flex>
 
-            <v-flex xs12 sm6 md4>
+            <v-flex xs12 sm6 md3>
               <v-select
                 label="Actions"
                 append-outer-icon="send"
@@ -1194,15 +1194,23 @@ export default {
     async sendCntAction () {
       if (this.cnt_action) {
         var args = []
+        var broadcast = false
         var askId = this.node_actions.find(a => a.value === this.cnt_action)
         if (askId) {
-          var id = parseInt(prompt('Node ID'))
+          broadcast = await this.$refs.confirm.open(
+            'Broadcast',
+            'Send this command to all nodes?'
+          )
 
-          if (isNaN(id)) {
-            this.showMessage('Node ID must be an integer value')
-            return
+          if (!broadcast) {
+            var id = parseInt(prompt('Node ID'))
+
+            if (isNaN(id)) {
+              this.showMessage('Node ID must be an integer value')
+              return
+            }
+            args.push(id)
           }
-          args.push(id)
         }
 
         if (this.cnt_action === 'addNode') {
@@ -1222,7 +1230,14 @@ export default {
           }
         }
 
-        this.apiRequest(this.cnt_action, args)
+        if (broadcast) {
+          for (let i = 0; i < this.nodes.length; i++) {
+            const nodeid = this.nodes[i].node_id
+            this.apiRequest(this.cnt_action, [nodeid])
+          }
+        } else {
+          this.apiRequest(this.cnt_action, args)
+        }
       }
     },
     sendNodeAction (action) {
@@ -1257,7 +1272,7 @@ export default {
     getAssociations () {
       var g = this.group
       if (g && g.node) {
-        this.apiRequest('getAssociations', [g.node.node_id, g.group])
+        this.apiRequest('getAssociationsInstances', [g.node.node_id, g.group])
       }
     },
     addAssociation () {
@@ -1275,17 +1290,23 @@ export default {
 
         // wait a moment before refresh to check if the node
         // has been added to the group correctly
-        setTimeout(this.getAssociations, 500)
+        setTimeout(this.getAssociations, 1000)
       }
     },
     removeAssociation () {
       var g = this.group
       var target = !isNaN(g.target) ? parseInt(g.target) : g.target.node_id
       if (g && g.node && target) {
-        this.apiRequest('removeAssociation', [g.node.node_id, g.group, target])
+        var args = [g.node.node_id, g.group, target]
+
+        if (g.multiInstance) {
+          args.push(g.targetInstance || 0)
+        }
+
+        this.apiRequest('removeAssociation', args)
         // wait a moment before refresh to check if the node
         // has been added to the group correctly
-        setTimeout(this.getAssociations, 500)
+        setTimeout(this.getAssociations, 1000)
       }
     },
     updateValue (v) {
@@ -1421,8 +1442,13 @@ export default {
     this.socket.on(this.socketEvents.api, async data => {
       if (data.success) {
         switch (data.api) {
-          case 'getAssociations':
-            data.result = data.result.map(a => self.nodes[a]._name || a)
+          case 'getAssociationsInstances':
+            data.result = data.result.map(
+              a =>
+                `- Node: ${self.nodes[a.nodeid]._name || a} Instance: ${
+                  a.instance
+                }`
+            )
             self.$set(self.group, 'associations', data.result.join('\n'))
             break
           case '_getScenes':
