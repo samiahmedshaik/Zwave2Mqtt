@@ -53,7 +53,7 @@ if [ ! -z "$1" ]; then
 	echo ''
 	npm run build
 	echo "Executing command: pkg package.json -t node12-linux-x64 --out-path $PKG_FOLDER"
-	pkg package.json -t node12-linux-x64 --out-path $PKG_FOLDER
+	pkg package.json -b -t alpine --out-path $PKG_FOLDER
 else
 
 	if ask "Re-build $APP?"; then
